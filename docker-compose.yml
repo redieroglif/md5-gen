@@ -1,0 +1,43 @@
+version: '3.8'
+volumes:
+  dbdata:
+    driver: local
+
+services:
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+     - "8080:80"
+    volumes:
+     - ./nginx/www:/usr/share/nginx/html
+     - ./nginx/nginx.conf://etc/nginx/conf.d/default.conf
+    depends_on:
+     - api
+     
+
+  api:
+    build:
+      context: ./api
+    restart: always
+    volumes:
+      - ./api/src:/app
+    depends_on:
+     - db
+     - rabitmq
+
+  db:
+    image: postgres:12.3
+    restart: always
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_PASSWORD: dhSg9N2gZqhrRR6w
+    volumes:
+    - dbdata:/var/lib/postgresql/data
+  
+  rabitmq:
+    image: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rKrSaDXJRe4cmDFn"

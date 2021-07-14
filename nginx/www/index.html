@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+    <title>MD5 generator</title>
+  </head>
+  <body>
+    <div class="container vh-100">
+        <div class="row align-items-center justify-content-center h-100">
+            <div class="col">
+                <div class="col-12 bg-light p-4 m-2 rounded">
+                    <form id="fileForm">
+                        <div class="form-group">
+                            <input type="file" class="form-control-file" id="file" name="file" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                    <div class="bg-white p-3 mt-3 rounded" id="fileFormOutput" style="display:none"></div>
+                </div>
+                <div class="col-12 bg-light p-4 m-2  rounded">
+                    <form id="idForm">
+                        <div class="form-group">
+                            <input type="number" class="form-control" id="db_id" name="db_id" required placeholder="Enter your ID here">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                    <div class="bg-white p-3 mt-5 rounded" id="idFormOutput" style="display:none"></div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+
+        // File form submit
+        $('#fileForm').submit(function(e){
+            
+            // Preventing default form action
+            e.preventDefault();
+
+            // Getting form data for AJAX
+            var formData = new FormData($(this)[0]);
+
+            // Selecting output div
+            var out = $('#fileFormOutput')
+
+            // Sending request
+            $.ajax({
+                type: 'POST',
+                url: '/api/item/',
+                enctype: 'multipart/form-data',
+                processData: false,
+                contentType: false,
+                data: formData
+            }).done(function(data){
+                // On success
+                out.html(`Your ID is:<br/><span class="h2"><b>${data.id}</b></span>`).show();
+            }).fail(function(data){
+                // On error
+                out.html(`<p>Some error occurred. Please try again.</p><pre>${data.status}: ${data.statusText}</pre>`).show();
+            })
+            
+            // Showing spinner while page is waiting for response
+            out.html('<div class="spinner-border text-primary mr-5" role="status"><span class="sr-only">Uploading...</span></div>Uploading file...').show();
+        })
+
+        // ID form submit
+        $('#idForm').submit(function(e){
+            
+            // Preventing default form action
+            e.preventDefault();
+            
+            // Selecting output div
+            var out = $('#idFormOutput')
+
+            // Sending request
+            $.ajax({
+                type: 'GET',
+                url: '/api/item/'+$('#db_id').val(),
+            }).done(function(data){
+
+                // On success
+                if(data==null){
+                    // No data => no ID
+                    out.html('No such ID').show();
+                } else {
+                    if(data.hash_ready){
+                        // ID exists and hash is ready
+                        out.html(`<p>Hash for ID <b>${data.id}</b> is <span class="text-success">ready</span>:</p><pre class="bg-dark text-light p-4 rounded">${data.hash}</pre>`).show();
+                    } else {
+                        // ID exists but hash isn't ready
+                        out.html(`<p>Hash for ID <b>${data.id}</b> is <span class="text-danger">not ready</span>.</p>`).show();
+                    }
+                }
+            }).fail(function(data){
+                // On error
+                out.html(`<p>Some error occurred. Please try again.</p><pre>${data.status}: ${data.statusText}</pre>`).show();
+            })
+        })
+    </script>
+  </body>
+</html>
